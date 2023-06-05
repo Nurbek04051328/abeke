@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config()
+require('dotenv').config();
+const fileUpload = require('express-fileupload')
 
 
 // Routers
@@ -9,6 +10,17 @@ const routerList = require('./router.js')
 
 const app = express()
 const PORT = process.env.PORT || 3003;
+
+
+app.use(fileUpload({
+    limits: {
+        fileSize: 1000000*30 //1mb
+    },
+    abortOnLimit: true
+}));
+
+app.use('/images',express.static('images'))
+
 
 app.use(express.json());
 app.use(cors());

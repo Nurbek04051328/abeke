@@ -11,10 +11,10 @@ const all = async (req, res) => {
         let quantity = req.query.quantity || 20;
         let next = req.query.next || 1;
         next = (next-1)*quantity;
-        console.log("query", req.query)
+        // console.log("query", req.query)
         let name = req.query.name || null;
         let phone = req.query.phone || null;
-        console.log(phone)
+        // console.log(phone)
         let factors = [];
         let fil = {};
         let othername = kirilLotin.kirlot(name)
@@ -47,6 +47,7 @@ const all = async (req, res) => {
 
 const count = async (req, res) => {
     try {
+        let userFunction = decoded(req,res)
         // let quantity = req.query.quantity || 30;
         // let next = req.query.next || 1;
         // next = (next-1)*quantity;
@@ -54,7 +55,7 @@ const count = async (req, res) => {
         let factors = [];
         let fil = {};
         if (name) fil = {...fil, 'name': { $regex: new RegExp( name.toLowerCase(), 'i')}};
-        factors = await Factory.find({...fil})
+        factors = await Factory.find({...fil, userId:userFunction.id})
             .populate('user')
             .sort({_id:-1})
             .count();

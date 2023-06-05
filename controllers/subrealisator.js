@@ -42,6 +42,17 @@ const all = async (req, res) => {
     }
 }
 
+const allActive = async (req, res) => {
+    try {
+        let userFunction = decoded(req,res)
+        let subrealisator = await Subrealisator.find({ status:1 }).lean()
+        // console.log("sub" subrealisator)
+        res.status(200).json(subrealisator);
+    } catch (e) {
+        console.log(e)
+        res.send({message: "Ошибка сервера"})
+    }
+}
 
 const count = async (req, res) => {
     try {
@@ -90,7 +101,7 @@ const create = async (req, res) => {
         }
         let userFunction = decoded(req,res)
         const hashPass = await bcrypt.hash(password, 10);
-        let newUser = await new User({ login, password:hashPass, role:'realisator' });
+        let newUser = await new User({ login, password:hashPass, role:'subrealisator' });
         await newUser.save();
 
         const subrealisator = await new Subrealisator({ user:newUser._id, userId:userFunction.id, name, phone, summa, createdAt:Date.now() });
@@ -154,4 +165,4 @@ const del = async(req,res)=>{
 }
 
 
-module.exports = { all, count, changeStatus, create, update, findOne, del }
+module.exports = { all, count, allActive, changeStatus, create, update, findOne, del }

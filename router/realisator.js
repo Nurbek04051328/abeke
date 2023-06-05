@@ -1,12 +1,14 @@
 const Router = require("express");
 const router = new Router();
 const auth = require('../middleware/auth');
-const { all, count, create, changeStatus, update, findOne, del } = require('../controllers/realisator');
+const { all, count, create, allActive, changeStatus, update, findOne, del } = require('../controllers/realisator');
 
 
 router.get('/', auth,  all);
 
 router.get('/count', auth,  count);
+
+router.get('/active', auth,  allActive);
 
 router.post("/", auth, create);
 

@@ -13,7 +13,7 @@ const all = async (req, res) => {
         next = (next-1)*quantity;
         let name = req.query.name || null;
         let phone = req.query.phone || null;
-        console.log(phone)
+        // console.log(phone)
         let realisators = [];
         let fil = {};
         let othername = kirilLotin.kirlot(name)
@@ -46,7 +46,8 @@ const all = async (req, res) => {
 
 const count = async (req, res) => {
     try {
-        realisators = await Realisator.find()
+        let userFunction = decoded(req,res)
+        realisators = await Realisator.find({userId:userFunction.id})
             .populate('user')
             .count();
         res.status(200).json(realisators);
@@ -56,6 +57,15 @@ const count = async (req, res) => {
     }
 }
 
+const allActive = async (req, res) => {
+    try {
+        let realisator = await Realisator.find({ status:1 }).lean()
+        res.status(200).json(realisator);
+    } catch (e) {
+        console.log(e)
+        res.send({message: "Ошибка сервера"})
+    }
+}
 
 const changeStatus = async (req, res) => {
     try {
@@ -156,4 +166,4 @@ const del = async(req,res)=>{
 }
 
 
-module.exports = { all, count, changeStatus, create, update, findOne, del }
+module.exports = { all, count, allActive, changeStatus, create, update, findOne, del }

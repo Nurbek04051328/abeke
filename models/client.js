@@ -19,18 +19,23 @@ const client = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Subrealisator'
     },
-    province: {
-        type: Number,
+    region: {
+        type: Schema.Types.ObjectId,
+        ref: 'Region'
+    },
+    district: {
+        type: Schema.Types.ObjectId,
+        ref: 'City'
     },
     inn: {
-        type: String,
+        type: Number,
     },
     mfo: {
-        type: String,
+        type: Number,
     },
     address: String,
     debt: Number,
-    check: Number,,
+    check: Number,
     limit: Number,
     createdAt: Date,
     updateAt: Date,
