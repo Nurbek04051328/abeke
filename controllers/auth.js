@@ -23,7 +23,7 @@ const checkLogin = async(req,res) => {
     const user = await User.findOne({login})
     if (user) {
         console.log("user", user)
-        res.status(205).send({message: "Пользователь с таким логином есть!"})
+        res.status(401).send({message: "Пользователь с таким логином есть!"})
     } else {
         console.log("else")
         res.status(200).send({message: "ок"})
@@ -42,7 +42,8 @@ const checkLogin = async(req,res) => {
 // }
 
 const login = async (req, res) => {
-    let {login, password} = req.body
+    let {login, password } = req.body
+    console.log("login", req.body)
     const user = await User.findOne({login})
     if (!user) {
         return res.status(404).json({message: "Пользователь не найдено!"})
@@ -54,7 +55,7 @@ const login = async (req, res) => {
     const token = jwt.sign({id: user.id}, process.env.SecretKey, {expiresIn: "1d"})
     let findData = {}
     if (user.role == 'realisator') {
-        findData = await Realisator.findOne({user:user._id}).lean();
+        findData = await Realisator.findOne({user:user._id}).select(['name', 'phone']).lean();
     }
     let data = {
         id: user.id,
