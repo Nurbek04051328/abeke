@@ -8,8 +8,7 @@ const location = new Schema({
     },
     lat:String,
     long:String,
-    createdAt: Date,
-    updateAt: Date,
+    createdTime: Date,
 })
 
 

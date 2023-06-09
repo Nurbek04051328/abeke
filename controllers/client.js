@@ -53,6 +53,12 @@ const allActive = async (req, res) => {
     res.status(200).json(districts);
 }
 
+const allActiveClient = async (req, res) => {
+    let userFunction = decoded(req,res)
+    let districts = await Client.find({ userId:userFunction.id, status:1 }).lean()
+    res.status(200).json(districts);
+}
+
 
 const changeStatus = async (req, res) => {
     if (req.params.id) {
