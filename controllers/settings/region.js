@@ -53,7 +53,7 @@ const count = async (req, res) => {
 const allActive = async (req, res) => {
     try {
         let userFunction = decoded(req,res)
-        regions = await Region.find({userId:userFunction.id, status:1}).lean()
+        regions = await Region.find({ status:1}).lean()
         res.status(200).json(regions);
     } catch (e) {
         console.log(e)

@@ -1,7 +1,7 @@
-
 const bcrypt = require('bcrypt');
 const FactorAdmin = require("../models/factorAdmin");
 const User = require("../models/user");
+const mongoose = require("mongoose")
 
 
 const all = async (req, res) => {
@@ -77,24 +77,31 @@ const create = async (req, res) => {
     try {
         let { login, password, name, phone, email, status } = req.body;
         status = status || 1
-        login = "+998 " + login
         const haveLogin = await User.findOne({login});
+        console.log(haveLogin)
         if (haveLogin) {
             return res.status(400).json({message: `Такой логин есть`});
         }
-
         const hashPass = await bcrypt.hash(password, 10);
-        let newUser = await new User({ login, password:hashPass, role:'admin' });
+        let newUser =  new User({ login, password:hashPass, role:'admin' });
+        await newUser.validate();
         await newUser.save();
-
         const factorAdmin = await new FactorAdmin({ user:newUser._id, name, phone, email, status, createdAt:Date.now() });
+        await factorAdmin.validate();
         await factorAdmin.save();
         let newFactoryAdmin = await FactorAdmin.findOne({_id:factorAdmin._id}).populate('user').lean()
         newFactoryAdmin.createdAt = newFactoryAdmin.createdAt.toLocaleString("en-GB")
         return res.status(201).json(newFactoryAdmin);
-    } catch (e) {
-        console.log(e)
-        res.send({message: "Ошибка сервера"})
+    } catch (error) {
+        if (error instanceof mongoose.Error.ValidationError) {
+            const errors = {};
+            for (let key in error.errors) {
+                errors[key] = error.errors[key].message;
+            }
+            res.status(400).send(errors);
+        } else {
+            res.status(500).send(error);
+        }
     }
 }
 
@@ -103,9 +110,9 @@ const update = async (req, res) => {
         if (req.params.id) {
             let id = req.params.id;
             let { login, password, name, phone, email } = req.body;
-            login = "+998 " + login
             let factorAdmin = await FactorAdmin.findOneAndUpdate({_id:id},{ name, phone, email, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = factorAdmin.user._id;
+
             let user = await User.findOne({_id: userId});
             user.login = login;
             if(password) {
@@ -138,7 +145,8 @@ const findOne = async (req, res) => {
 
 const del = async(req,res)=>{
     if (req.params.id) {
-        let _id = req.params.id;
+        let _id = req.params.id
+        console.log(_id)
         let factorAdmin = await FactorAdmin.findByIdAndDelete(_id);
         await User.findByIdAndDelete({_id:factorAdmin.user});
         res.status(200).json({message:'Удалено!', data: factorAdmin._id});

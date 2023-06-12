@@ -10,8 +10,6 @@ router.get('/count', auth,  count);
 
 router.get('/active', auth,  allActive);
 
-router.get('/activeclient', auth,  allActive);
-
 router.post("/", auth, create);
 
 router.get("/change/:id/:status", auth, changeStatus);

@@ -3,12 +3,12 @@ const {Schema, model} = require("mongoose");
 const User = new Schema({
     login: {
         type: String, 
-        required: true, 
+        required: [true, "Заполните логин"],
         unique: true
     },
     password: {
         type: String, 
-        required: true
+        required: [true, "Заполните парол"]
     },
     role:{
         type:String

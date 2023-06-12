@@ -28,12 +28,13 @@ const all = async (req, res) => {
 
 
 
-// const count = async (req, res) => {
-//     let userFunction = decoded(req,res)
-//     let categories = await Category.find({userId:userFunction.id})
-//         .count();
-//     res.status(200).json(categories);
-// }
+const last = async (req, res) => {
+    let userFunction = decoded(req,res)
+    let location = await Location.find({userId:userFunction.id})
+        .sort({_id:-1})
+        .limit(1)
+    res.status(200).json(location);
+}
 
 
 const create = async (req, res) => {
@@ -77,4 +78,4 @@ const del = async(req,res)=>{
 }
 
 
-module.exports = { all, create, findOne, del }
+module.exports = { all, create, findOne, del, last }

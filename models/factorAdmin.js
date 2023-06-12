@@ -7,11 +7,11 @@ const factorAdmin = new Schema({
     },
     name: {
         type: String,
-        
+        required: [true, "Заполните название"],
     },
     phone: {
         type: String,
-        
+        required: [true, "Заполните номер телефона"],
     },
     email: {
         type: String,
