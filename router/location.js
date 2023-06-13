@@ -6,7 +6,7 @@ const { all, create, findOne, del, last } = require('../controllers/location');
 
 router.get('/', auth,  all);
 
-router.get('/last', auth,  last);
+router.get('/last/:id', auth,  last);
 
 router.post("/", auth, create);
 

@@ -93,8 +93,8 @@ const changeStatus = async (req, res) => {
 
 const create = async (req, res) => {
     try {
-        let { login, password, name, phone, address } = req.body;
-        login = "+998 " + login
+        let { login, password, name, phone, address, status } = req.body;
+        status = status || 1
         const haveLogin = await User.findOne({login});
         if (haveLogin) {
             return res.status(400).json({message: `Такой логин есть`});
@@ -123,7 +123,7 @@ const update = async (req, res) => {
             let factory = await Factory.findOneAndUpdate({_id:id},{ name, phone, address,  updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = factory.user._id;
             let user = await User.findOne({_id: userId});
-            user.login = "+998 " + login;
+            user.login = login;
             if(password) {
                 const hashPass = await bcrypt.hash(password, 10);
                 user.password = hashPass;

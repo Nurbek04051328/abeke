@@ -30,10 +30,17 @@ const all = async (req, res) => {
 
 const last = async (req, res) => {
     let userFunction = decoded(req,res)
-    let location = await Location.find({userId:userFunction.id})
+    let subId = req.params.id
+
+    let location = await Location.findOne({userId:userFunction.id, subrealisator:subId})
         .sort({_id:-1})
         .limit(1)
-    res.status(200).json(location);
+    if(location) {
+        res.status(200).json(location);
+    } else {
+        res.status(400).json({message: "Hozircha locatsiyasi yuq"});
+    }
+
 }
 
 

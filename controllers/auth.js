@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require("../models/user");
 const FactorAdmin = require("../models/factorAdmin");
 const Realisator = require("../models/realisator");
+const Subrealisator = require("../models/subrealisator");
 
 
 const addadmin = async (req, res) => {
@@ -57,6 +58,9 @@ const login = async (req, res) => {
     let findData = {}
     if (user.role == 'realisator') {
         findData = await Realisator.findOne({user:user._id}).select(['name', 'phone']).lean();
+    }
+    if (user.role == 'subrealisator') {
+        findData = await Subrealisator.findOne({user:user._id}).select(['name', 'phone']).lean();
     }
     let data = {
         id: user.id,

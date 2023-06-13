@@ -112,7 +112,6 @@ const update = async (req, res) => {
             let { login, password, name, phone, email } = req.body;
             let factorAdmin = await FactorAdmin.findOneAndUpdate({_id:id},{ name, phone, email, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = factorAdmin.user._id;
-
             let user = await User.findOne({_id: userId});
             user.login = login;
             if(password) {

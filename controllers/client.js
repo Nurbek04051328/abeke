@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const Client = require("../models/client");
+const Subrealisator = require("../models/subrealisator");
 const User = require("../models/user");
 const decoded = require("../service/decoded");
 const kirilLotin = require("../service/kirilLotin");
@@ -13,6 +14,7 @@ const all = async (req, res) => {
     let name = req.query.name || null;
     let phone = req.query.phone || null;
     let region = req.query.region || null;
+    let subrealisator = req.query.subrealisator || null;
     let subrealisators = [];
     let fil = {};
     let othername = kirilLotin.kirlot(name)
@@ -26,8 +28,9 @@ const all = async (req, res) => {
     }
     if (phone) fil = {...fil, phone};
     if (region) fil = {...fil, region};
+    if (subrealisator) fil = {...fil, subrealisator};
     clients = await Client.find({...fil, userId:userFunction.id })
-        .populate(['user', 'subrealisator', 'district'])
+        .populate(['user', {path:'subrealisator', model:'Subrealisator', select:'name'}, 'region', 'district'])
         .select(['_id', 'user', 'subrealisator', 'district', 'limit', 'debt', 'phone', 'name', 'address'])
         .sort({_id:-1})
         .limit(quantity)
@@ -80,8 +83,8 @@ const changeStatus = async (req, res) => {
 }
 
 const create = async (req, res) => {
+    console.log("client", req.body)
     let { login, password, name, subrealisator, phone, region, district, inn, mfo, address, debt, check, limit } = req.body;
-    login = "+998 " + login
     const haveLogin = await User.findOne({login});
     if (haveLogin) {
         return res.status(400).json({message: `Такой логин есть`});
@@ -93,7 +96,7 @@ const create = async (req, res) => {
 
     const client = await new Client({ user:newUser._id, userId:userFunction.id, name, subrealisator, phone, region, district, inn, mfo, address, debt, check, limit, createdAt:Date.now() });
     await client.save();
-    let newClient = await Client.findOne({_id:client._id}).populate(['user', 'subrealisator', 'district']).lean()
+    let newClient = await Client.findOne({_id:client._id}).populate(['user', {path:'subrealisator', model:'Subrealisator', select:'name'}, 'region', 'district']).lean()
     newClient.createdAt = newClient.createdAt.toLocaleString("en-GB")
     return res.status(201).json(newClient);
 }
@@ -105,13 +108,13 @@ const update = async (req, res) => {
         let client = await Client.findOneAndUpdate({_id:id},{ name, subrealisator, phone, region, district, inn, mfo, address, debt, check, limit, updateAt:Date.now()}, {returnDocument: 'after'});
         let userId = client.user._id;
         let user = await User.findOne({_id: userId});
-        user.login = "+998 " + login;
+        user.login = login;
         if(password) {
             const hashPass = await bcrypt.hash(password, 10);
             user.password = hashPass;
         }
         await User.findByIdAndUpdate(user._id,user);
-        let saveClient = await Client.findOne({_id:client._id}).populate(['user', 'subrealisator', 'district']).lean();
+        let saveClient = await Client.findOne({_id:client._id}).populate(['user', {path:'subrealisator', model:'Subrealisator', select:'name'}, 'region', 'district']).lean();
         saveClient.createdAt = saveClient.createdAt.toLocaleString("en-GB")
         res.status(200).json(saveClient);
     } else {

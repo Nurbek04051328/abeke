@@ -94,7 +94,6 @@ const changeStatus = async (req, res) => {
 const create = async (req, res) => {
     try {
         let { login, password, name, phone } = req.body;
-        login = "+998 " + login
         const haveLogin = await User.findOne({login});
         if (haveLogin) {
             return res.status(400).json({message: `Такой логин есть`});
@@ -123,7 +122,7 @@ const update = async (req, res) => {
             let realisator = await Realisator.findOneAndUpdate({_id:id},{ name, phone, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = realisator.user._id;
             let user = await User.findOne({_id: userId});
-            user.login = "+998 " + login;
+            user.login = login;
             if(password) {
                 const hashPass = await bcrypt.hash(password, 10);
                 user.password = hashPass;
