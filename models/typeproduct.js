@@ -1,20 +1,21 @@
 const {Schema, model} = require('mongoose')
 
-const typeprice = new Schema({
+const typeproduct = new Schema({
     userId: String,
-    title: {
-        type: String
+    product: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product'
     },
-    type: Number,
-    realisators: Array,
-    clients: Array,
-    createdAt: Date,
-    updateAt: Date,
-    status: {
-        type: Number,
-        default: 1
-    }
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category'
+    },
+    typeprice: {
+        type: Schema.Types.ObjectId,
+        ref: 'Typeprice'
+    },
+    price: Number,
 })
 
 
-module.exports = model('Typeprice',typeprice)
+module.exports = model('Typeproduct',typeproduct)

@@ -123,7 +123,7 @@ const update = async (req, res) => {
             let subrealisator = await Subrealisator.findOneAndUpdate({_id:id},{ name, phone, summa, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = subrealisator.user._id;
             let user = await User.findOne({_id: userId});
-
+            user.login = login;
             if(password) {
                 const hashPass = await bcrypt.hash(password, 10);
                 user.password = hashPass;
@@ -145,6 +145,7 @@ const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
         let subrealisator = await Subrealisator.findOne({_id}).populate('user').lean();
+        subrealisator.createdAt = subrealisator.createdAt.toLocaleString("en-GB")
         res.status(200).json(subrealisator);
     } catch (e) {
         console.log(e);
