@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const Product = require("../models/product");
 const decoded = require("../service/decoded");
 const kirilLotin = require("../service/kirilLotin");
+const fs = require('fs')
 
 
 const all = async (req, res) => {
@@ -53,6 +54,16 @@ const count = async (req, res) => {
     res.status(200).json(products);
 }
 
+const allActive = async (req, res) => {
+    try {
+        let userFunction = decoded(req,res)
+        let products = await Product.find({ status:1 }).lean()
+        res.status(200).json(products);
+    } catch (e) {
+        console.log(e)
+        res.send({message: "Ошибка сервера"})
+    }
+}
 
 const changeStatus = async (req, res) => {
     try {
@@ -165,4 +176,4 @@ const deleteImg = async (req,res)=>{
     res.status(200).send({message: "Успешно"})
 }
 
-module.exports = { all, count, changeStatus, create, update, findOne, del, createPhoto, deleteImg }
+module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg }

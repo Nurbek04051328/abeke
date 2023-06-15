@@ -1,49 +1,41 @@
 const bcrypt = require('bcrypt');
-const Typeprice = require("../models/typeprice");
+const Typeproduct = require("../models/typeproduct");
 const decoded = require("../service/decoded");
 const kirilLotin = require("../service/kirilLotin");
 
 
 const all = async (req, res) => {
     let userFunction = decoded(req,res)
-    let quantity = req.query.quantity || 20;
+    let quantity = req.query.quantity || 30;
     let next = req.query.next || 1;
     next = (next-1)*quantity;
-    let title = req.query.title || null;
-    let type = req.query.type || null;
-    let typeprices = [];
+    let typeprice = req.query.typeprice || null;
+    let category = req.query.category || null;
+    let typeproducts = [];
     let fil = {};
-    let othername = kirilLotin.kirlot(title)
-    if (title) {
-        fil = {
-            ...fil, $or: [
-                {'title': {$regex: new RegExp(title.toLowerCase(), 'i')}},
-                {'title': {$regex: new RegExp(othername.toLowerCase(), 'i')}},
-            ]
-        }
-    }
-    if (type) fil = {...fil, type};
-    typeprices = await Typeprice.find({...fil, userId:userFunction.id })
+    if (typeprice) fil = {...fil, typeprice};
+    if (category) fil = {...fil, category};
+    typeproducts = await Typeproduct.find({...fil, userId:userFunction.id })
         .sort({_id:-1})
         .limit(quantity)
         .skip(next).lean();
-    if (typeprices.length > 0) {
-        typeprices = typeprices.map(item => {
+    if (typeproducts.length > 0) {
+        typeproducts = typeproducts.map(item => {
             item.type = item.type == 1 ? 'Реализатор' : 'Клиент'
             item.createdTime = item.createdTime.toLocaleString("en-GB")
             return item
         })
     }
-    const count = await Typeprice.find({...fil, userId:userFunction.id }).count()
-    res.status(200).json({ typeprices, count });
+    const count = await Typeproduct.find({...fil, userId:userFunction.id }).count()
+    res.status(200).json({ typeproducts, count });
 }
 
 
 const count = async (req, res) => {
     let userFunction = decoded(req,res)
-    let typeprices = await Typeprice.find({userId:userFunction.id})
+    let typeproducts = await Typeproduct.find({userId:userFunction.id})
         .count();
-    res.status(200).json(typeprices);
+    res.status(200).json(typeproducts);
 }
 
 
@@ -52,17 +44,16 @@ const changeStatus = async (req, res) => {
         if (req.params.id) {
             const _id = req.params.id
             let status = req.query.status;
-            let typeprice = await Typeprice.findOne({_id}).lean()
+            let typeproduct = await Typeproduct.findOne({_id}).lean()
             if(req.query.status) {
-                typeprice.status = parseInt(status)
+                typeproduct.status = parseInt(status)
             } else {
-                typeprice.status = typeprice.status == 0 ? 1 : 0
+                typeproduct.status = typeproduct.status == 0 ? 1 : 0
             }
-            let upstatus = await Typeprice.findByIdAndUpdate(_id,typeprice)
-            let saveTypeprice = await Typeprice.findOne({_id:_id}).lean()
-            saveTypeprice.createdTime = saveTypeprice.createdTime.toLocaleString("en-GB")
-            saveTypeprice.type = saveTypeprice.type == 1 ? 'Реализатор' : 'Клиент'
-            res.status(200).send(saveTypeprice)
+            let upstatus = await Typeproduct.findByIdAndUpdate(_id,typeproduct)
+            let saveTypeproduct = await Typeproduct.findOne({_id:_id}).lean()
+            saveTypeproduct.createdTime = saveTypeproduct.createdTime.toLocaleString("en-GB")
+            res.status(200).send(saveTypeproduct)
         } else {
             res.ststus(400).send({message: "Id не найдено"})
         }
@@ -74,15 +65,26 @@ const changeStatus = async (req, res) => {
 
 const create = async (req, res) => {
     try {
-        let { title, type, realisators, clients } = req.body;
-        // console.log("body", req.body)
+        console.log("body",req.body)
+        let { typeprice, products } = req.body;
         let userFunction = decoded(req,res)
-        const typeprice = await new Typeprice({ userId:userFunction.id, title, type, realisators, clients, createdTime:Date.now() });
-        await typeprice.save();
-        let newTypeprice = await Typeprice.findOne({_id:typeprice._id}).lean()
-        newTypeprice.createdTime = newTypeprice.createdTime.toLocaleString("en-GB")
-        newTypeprice.type = newTypeprice.type == 1 ? 'Реализатор' : 'Клиент'
-        return res.status(201).json(newTypeprice);
+        let typeproducts = await Promise.all(products.map(async item => {
+            let status = 1
+            if (item.category && item.product && item.price) {
+                const typeproduct = await new Typeproduct({ userId:userFunction.id, typeprice, product:item.product, category:item.category, price:item.price, status, createdTime:Date.now() });
+                await typeproduct.save();
+            }
+
+            return item
+        }))
+
+        console.log("typeproducts", typeproducts)
+        // const typeprice = await new Typeprice({ userId:userFunction.id, title, type, realisators, clients, createdTime:Date.now() });
+        // await typeprice.save();
+        // let newTypeprice = await Typeprice.findOne({_id:typeprice._id}).lean()
+        // newTypeprice.createdTime = newTypeprice.createdTime.toLocaleString("en-GB")
+        // newTypeprice.type = newTypeprice.type == 1 ? 'Реализатор' : 'Клиент'
+        // return res.status(201).json(newTypeprice);
     } catch (e) {
         console.log(e)
         res.send({message: "Ошибка сервера"})
@@ -111,8 +113,8 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let typeprice = await Typeprice.findOne({_id}).lean();
-        res.status(200).json(typeprice);
+        let typeproduct = await Typeproduct.findOne({_id}).lean();
+        res.status(200).json(typeproduct);
     } catch (e) {
         console.log(e);
         res.send({message: "Ошибка сервера"});
@@ -122,8 +124,8 @@ const findOne = async (req, res) => {
 const del = async(req,res)=>{
     if (req.params.id) {
         let _id = req.params.id;
-        let typeprice = await Typeprice.findByIdAndDelete(_id);
-        res.status(200).json({message:'Удалено!', data: typeprice._id});
+        let typeproduct = await Typeproduct.findByIdAndDelete(_id);
+        res.status(200).json({message:'Удалено!', data: typeproduct._id});
     } else {
         console.log(e);
         res.status(500).send({message: "Не найдено"});

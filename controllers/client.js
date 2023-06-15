@@ -31,7 +31,6 @@ const all = async (req, res) => {
     if (subrealisator) fil = {...fil, subrealisator};
     clients = await Client.find({...fil, userId:userFunction.id })
         .populate(['user', {path:'subrealisator', model:'Subrealisator', select:'name'}, 'region', 'district'])
-        .select(['_id', 'user', 'subrealisator', 'district', 'limit', 'debt', 'phone', 'name', 'address'])
         .sort({_id:-1})
         .limit(quantity)
         .skip(next).lean();

@@ -9,7 +9,7 @@ const all = async (req, res) => {
     let next = req.query.next || 1;
     next = (next-1)*quantity;
     let subrealisator = req.query.subrealisator || null;
-    let categories = [];
+    let locations = [];
     let fil = {};
     if (subrealisator) fil = {...fil, subrealisator};
     locations = await Location.find({...fil, userId:userFunction.id })

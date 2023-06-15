@@ -119,12 +119,14 @@ const update = async (req, res) => {
     try {
         if (req.params.id) {
             let id = req.params.id;
+            console.log(req.body)
             let { login, password, name, phone, summa } = req.body;
             let subrealisator = await Subrealisator.findOneAndUpdate({_id:id},{ name, phone, summa, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = subrealisator.user._id;
             let user = await User.findOne({_id: userId});
             user.login = login;
-            if(password) {
+
+            if(password && password.length>0) {
                 const hashPass = await bcrypt.hash(password, 10);
                 user.password = hashPass;
             }
