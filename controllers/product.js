@@ -77,7 +77,7 @@ const changeStatus = async (req, res) => {
                 product.status = product.status == 0 ? 1 : 0
             }
             let upstatus = await Product.findByIdAndUpdate(_id,product)
-            let saveProduct = await Product.findOne({_id:_id}).lean()
+            let saveProduct = await Product.findOne({_id:_id}).populate('category').lean()
             saveProduct.createdTime = saveProduct.createdTime.toLocaleString("en-GB")
             res.status(200).send(saveProduct)
         } else {
@@ -91,8 +91,9 @@ const changeStatus = async (req, res) => {
 
 const create = async (req, res) => {
     try {
+        console.log("body", req.body)
         let { code, title, category, unit, weight, price, count, photo } = req.body;
-        photo = photo[0].response
+        // photo = photo[0].response
         // let userFunction = decoded(req,res)
         // const product = await new Product({ userId:userFunction.id, code, title, category, unit, weight, price, count, photo, createdTime:Date.now() });
         const product = await new Product({ code, title, category, unit, weight, price, count, photo, createdTime:Date.now() });
@@ -153,14 +154,13 @@ const del = async(req,res)=>{
 // upload Img
 
 const createPhoto = async  (req,res) =>{
-    console.log(req.files,req.file)
     if (req.files) {
         console.log("reqfiles", req.files)
         let file = req.files.file
         uniquePreffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
         filepath = `images/${uniquePreffix}_${file.name}`
         await file.mv(filepath)
-        // console.log(filepath)
+        console.log(filepath)
         res.status(200).send(filepath)
     }
 

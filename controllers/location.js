@@ -32,10 +32,10 @@ const last = async (req, res) => {
     let userFunction = decoded(req,res)
     let subId = req.params.id
 
-    let location = await Location.findOne({userId:userFunction.id, subrealisator:subId})
-        .sort({_id:-1})
-        .limit(1)
+    let location = await Location.findOne({ subrealisator:subId})
+        .sort({createdTime:-1}).lean()
     if(location) {
+        console.log("last",location)
         res.status(200).json(location);
     } else {
         res.status(400).json({message: "Hozircha locatsiyasi yuq"});
@@ -54,6 +54,7 @@ const create = async (req, res) => {
         console.log(location , "data")
         let newLocation = await Location.findOne({_id:location._id}).populate('subrealisator').lean()
         newLocation.createdTime = newLocation.createdTime.toLocaleString("en-GB")
+        console.log("new", newLocation)
         return res.status(201).json(newLocation);
     } catch (e) {
         console.log(e)

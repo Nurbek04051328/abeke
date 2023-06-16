@@ -11,17 +11,19 @@ const all = async (req, res) => {
     next = (next-1)*quantity;
     let typeprice = req.query.typeprice || null;
     let category = req.query.category || null;
+    let product = req.query.product || null;
     let typeproducts = [];
     let fil = {};
     if (typeprice) fil = {...fil, typeprice};
     if (category) fil = {...fil, category};
+    if (product) fil = {...fil, product};
     typeproducts = await Typeproduct.find({...fil, userId:userFunction.id })
+        .populate(['product', 'category', 'typeprice'])
         .sort({_id:-1})
         .limit(quantity)
         .skip(next).lean();
     if (typeproducts.length > 0) {
         typeproducts = typeproducts.map(item => {
-            item.type = item.type == 1 ? 'Реализатор' : 'Клиент'
             item.createdTime = item.createdTime.toLocaleString("en-GB")
             return item
         })
@@ -51,7 +53,7 @@ const changeStatus = async (req, res) => {
                 typeproduct.status = typeproduct.status == 0 ? 1 : 0
             }
             let upstatus = await Typeproduct.findByIdAndUpdate(_id,typeproduct)
-            let saveTypeproduct = await Typeproduct.findOne({_id:_id}).lean()
+            let saveTypeproduct = await Typeproduct.findOne({_id:_id}).populate(['product', 'category', 'typeprice']).lean()
             saveTypeproduct.createdTime = saveTypeproduct.createdTime.toLocaleString("en-GB")
             res.status(200).send(saveTypeproduct)
         } else {
@@ -65,26 +67,26 @@ const changeStatus = async (req, res) => {
 
 const create = async (req, res) => {
     try {
-        console.log("body",req.body)
         let { typeprice, products } = req.body;
         let userFunction = decoded(req,res)
         let typeproducts = await Promise.all(products.map(async item => {
-            let status = 1
             if (item.category && item.product && item.price) {
-                const typeproduct = await new Typeproduct({ userId:userFunction.id, typeprice, product:item.product, category:item.category, price:item.price, status, createdTime:Date.now() });
+                let status = 1
+                let typeproduct = await new Typeproduct({ userId:userFunction.id, typeprice, product:item.product, category:item.category, price:item.price, status, createdTime:Date.now() });
                 await typeproduct.save();
+                return typeproduct
             }
-
-            return item
         }))
-
-        console.log("typeproducts", typeproducts)
-        // const typeprice = await new Typeprice({ userId:userFunction.id, title, type, realisators, clients, createdTime:Date.now() });
-        // await typeprice.save();
-        // let newTypeprice = await Typeprice.findOne({_id:typeprice._id}).lean()
-        // newTypeprice.createdTime = newTypeprice.createdTime.toLocaleString("en-GB")
-        // newTypeprice.type = newTypeprice.type == 1 ? 'Реализатор' : 'Клиент'
-        // return res.status(201).json(newTypeprice);
+        let newTypeproducts = await Typeproduct.find({userId:userFunction.id}).populate(['product', 'category', 'typeprice']).sort({_id:-1})
+            .limit(products.length).lean()
+        if (newTypeproducts.length > 0) {
+            newTypeproducts = newTypeproducts.map(item => {
+                item.createdTime = item.createdTime.toLocaleString("en-GB")
+                return item
+            })
+        }
+        console.log("typeproducts", newTypeproducts)
+        return res.status(201).json(newTypeproducts);
     } catch (e) {
         console.log(e)
         res.send({message: "Ошибка сервера"})

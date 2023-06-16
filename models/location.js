@@ -4,7 +4,8 @@ const location = new Schema({
     userId: String,
     subrealisator: {
         type:Schema.Types.ObjectId,
-        ref:'Subrealisator'
+        ref:'Subrealisator',
+        default: null
     },
     lat:String,
     long:String,
