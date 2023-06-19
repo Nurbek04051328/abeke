@@ -11,6 +11,7 @@ const all = async (req, res) => {
     next = (next-1)*quantity;
     let typeprice = req.query.typeprice || null;
     let category = req.query.category || null;
+    console.log(category)
     let product = req.query.product || null;
     let typeproducts = [];
     let fil = {};
@@ -28,6 +29,7 @@ const all = async (req, res) => {
             return item
         })
     }
+    // console.log("typeproducts",typeproducts)
     const count = await Typeproduct.find({...fil, userId:userFunction.id }).count()
     res.status(200).json({ typeproducts, count });
 }
