@@ -1,12 +1,16 @@
 const bcrypt = require('bcrypt');
 const Product = require("../models/product");
+const Typeprice = require("../models/typeprice");
+const Typeproduct = require("../models/typeproduct");
+const User = require("../models/user");
+const Realisator = require("../models/realisator");
 const decoded = require("../service/decoded");
 const kirilLotin = require("../service/kirilLotin");
 const fs = require('fs')
 
 
 const all = async (req, res) => {
-    // let userFunction = decoded(req,res)
+    let userFunction = decoded(req,res)
     let quantity = req.query.quantity || 20;
     let next = req.query.next || 1;
     next = (next-1)*quantity;
@@ -26,12 +30,8 @@ const all = async (req, res) => {
     }
     if (code) fil = {...fil, code};
     if (category) fil = {...fil, category};
-    // products = await Product.find({...fil, userId:userFunction.id })
-    //     .sort({_id:-1})
-    //     .limit(quantity)
-    //     .skip(next).lean();
-    products = await Product.find({...fil, })
-        .populate('category')
+    products = await Product.find({...fil, userId:userFunction.id })
+        .populate(['category', 'unit'])
         .sort({_id:-1})
         .limit(quantity)
         .skip(next).lean();
@@ -41,8 +41,7 @@ const all = async (req, res) => {
             return item
         })
     }
-    // const count = await Product.find({...fil, userId:userFunction.id }).count()
-    const count = await Product.find({...fil, }).count()
+    const count = await Product.find({...fil, userId:userFunction.id }).count()
     res.status(200).json({ products, count });
 }
 
@@ -57,7 +56,11 @@ const count = async (req, res) => {
 const allActive = async (req, res) => {
     try {
         let userFunction = decoded(req,res)
-        let products = await Product.find({ status:1 }).lean()
+        let category = req.query.category || null;
+        let products = [];
+        let fill = {};
+        if (category) fill = {...fill, category};
+        products = await Product.find({...fill, userId:userFunction.id, status:1 }).lean()
         res.status(200).json(products);
     } catch (e) {
         console.log(e)
@@ -77,7 +80,7 @@ const changeStatus = async (req, res) => {
                 product.status = product.status == 0 ? 1 : 0
             }
             let upstatus = await Product.findByIdAndUpdate(_id,product)
-            let saveProduct = await Product.findOne({_id:_id}).populate('category').lean()
+            let saveProduct = await Product.findOne({_id:_id}).populate(['category', 'unit']).lean()
             saveProduct.createdTime = saveProduct.createdTime.toLocaleString("en-GB")
             res.status(200).send(saveProduct)
         } else {
@@ -91,14 +94,12 @@ const changeStatus = async (req, res) => {
 
 const create = async (req, res) => {
     try {
-        console.log("body", req.body)
         let { code, title, category, unit, weight, price, count, photo } = req.body;
         // photo = photo[0].response
-        // let userFunction = decoded(req,res)
-        // const product = await new Product({ userId:userFunction.id, code, title, category, unit, weight, price, count, photo, createdTime:Date.now() });
-        const product = await new Product({ code, title, category, unit, weight, price, count, photo, createdTime:Date.now() });
+        let userFunction = decoded(req,res)
+        const product = await new Product({ userId:userFunction.id, code, title, category, unit, weight, price, count, photo, createdTime:Date.now() });
         await product.save();
-        let newProduct = await Product.findOne({_id:product._id}).populate('category').lean()
+        let newProduct = await Product.findOne({_id:product._id}).populate(['category', 'unit']).lean()
         newProduct.createdTime = newProduct.createdTime.toLocaleString("en-GB")
         return res.status(201).json(newProduct);
     } catch (e) {
@@ -113,7 +114,7 @@ const update = async (req, res) => {
             let id = req.params.id;
             let { code, title, category, unit, weight, price, count, photo } = req.body;
             let product = await Product.findOneAndUpdate({_id:id},{ code, title, category, unit, weight, price, count, photo, updateTime:Date.now()}, {returnDocument: 'after'});
-            let saveProduct = await Product.findOne({_id:product._id}).populate('category').lean();
+            let saveProduct = await Product.findOne({_id:product._id}).populate(['category', 'unit']).lean();
             saveProduct.createdTime = saveProduct.createdTime.toLocaleString("en-GB")
             res.status(200).json(saveProduct);
         } else {
@@ -155,12 +156,10 @@ const del = async(req,res)=>{
 
 const createPhoto = async  (req,res) =>{
     if (req.files) {
-        console.log("reqfiles", req.files)
         let file = req.files.file
         uniquePreffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
         filepath = `images/${uniquePreffix}_${file.name}`
         await file.mv(filepath)
-        console.log(filepath)
         res.status(200).send(filepath)
     }
 
@@ -176,4 +175,30 @@ const deleteImg = async (req,res)=>{
     res.status(200).send({message: "Успешно"})
 }
 
-module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg }
+
+//  Products for Realisator
+
+const findRealis = async (req, res) => {
+    try {
+        let userFunction = decoded(req,res)
+        let user = await User.findOne({_id: userFunction.id}).lean();
+        if (user.role == "realisator") {
+            let realisator = await Realisator.findOne({user: userFunction.id}).lean();
+            console.log("realisator", realisator)
+            let typeprices = await Typeprice.find({type:1,  'realisators': { $in: realisator._id }}).lean();
+            console.log("typeprices", typeprices)
+        }
+        console.log("user", user)
+        // let typeprices = await Typeprice.find({}).lean();
+        // res.status(200).json(product);
+    } catch (e) {
+        console.log(e);
+        res.send({message: "Ошибка сервера"});
+    }
+}
+
+
+
+
+
+module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg, findRealis }

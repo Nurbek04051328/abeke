@@ -108,7 +108,7 @@ const update = async (req, res) => {
         if (req.params.id) {
             let id = req.params.id;
             let { login, password, name, lname, phone, spec, status } = req.body;
-            let worker = await Worker.findOneAndUpdate({_id:id},{ name, lname, phone, spec, status  updateAt:Date.now()}, {returnDocument: 'after'});
+            let worker = await Worker.findOneAndUpdate({_id:id},{ name, lname, phone, spec, status, updateAt:Date.now()}, {returnDocument: 'after'});
             let userId = worker.user._id;
             let user = await User.findOne({_id: userId});
             user.login = login;

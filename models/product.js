@@ -10,7 +10,10 @@ const product = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Category'
     },
-    unit: Number,
+    unit: {
+        type: Schema.Types.ObjectId,
+        ref: 'Unit'
+    },
     weight: Number,
     price: Number,
     count: Number,

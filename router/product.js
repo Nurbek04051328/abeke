@@ -1,12 +1,15 @@
 const Router = require("express");
 const router = new Router();
 const auth = require('../middleware/auth');
-const { all, count, create, changeStatus, allActive, update, findOne, del, createPhoto, deleteImg } = require('../controllers/product');
+const { all, count, create, changeStatus, allActive, update, findOne, del, createPhoto, deleteImg, findRealis } = require('../controllers/product');
 
 
 router.get('/', auth,  all);
 
 router.post("/", auth, create);
+
+// Mobile Realisatorlar uchun
+router.get('/realtype', auth,  findRealis);
 
 router.get('/count', auth,  count);
 
@@ -23,6 +26,7 @@ router.get("/:id", auth, findOne);
 router.put('/:id', auth, update);
 
 router.delete('/:id', auth,  del);
+
 
 
 

@@ -1,7 +1,7 @@
 const Router = require("express");
 const router = new Router();
 const auth = require('../middleware/auth');
-const { all, count, allActive, create, changeStatus, update, findOne, del } = require('../controllers/category');
+const { all, count, allActive, create, changeStatus, update, findOne, del } = require('../controllers/unit');
 
 
 router.get('/', auth,  all);

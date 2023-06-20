@@ -10,8 +10,8 @@ const all = async (req, res) => {
     let next = req.query.next || 1;
     next = (next-1)*quantity;
     let typeprice = req.query.typeprice || null;
+    // console.log("category",req.query.category )
     let category = req.query.category || null;
-    console.log(category)
     let product = req.query.product || null;
     let typeproducts = [];
     let fil = {};
@@ -87,7 +87,7 @@ const create = async (req, res) => {
                 return item
             })
         }
-        console.log("typeproducts", newTypeproducts)
+        console.log("createtypeproducts", newTypeproducts)
         return res.status(201).json(newTypeproducts);
     } catch (e) {
         console.log(e)

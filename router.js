@@ -21,6 +21,7 @@ router.use('/region', require("./router/settings/region"));
 router.use('/district', require("./router/settings/district"));
 router.use('/typeproduct', require("./router/typeproduct"));
 router.use('/worker', require("./router/worker"));
+router.use('/unit', require("./router/unit"));
 
 //Realisator
 router.use('/location', require("./router/location"));
