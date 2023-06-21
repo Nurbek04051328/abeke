@@ -183,12 +183,12 @@ const findRealis = async (req, res) => {
         let userFunction = decoded(req,res)
         let user = await User.findOne({_id: userFunction.id}).lean();
         if (user.role == "realisator") {
-            let realisator = await Realisator.findOne({user: userFunction.id}).lean();
-            console.log("realisator", realisator)
-            let typeprices = await Typeprice.find({type:1,  'realisators': { $in: realisator._id }}).lean();
+            let realis = await Realisator.findOne({user: userFunction.id}).lean();
+            console.log("realisator", realis)
+            let typeprices = await Typeprice.find({type:1,  'realisators': { $elemMatch: {'realisator': realis._id}  }}).lean();
             console.log("typeprices", typeprices)
         }
-        console.log("user", user)
+        // console.log("user", user)
         // let typeprices = await Typeprice.find({}).lean();
         // res.status(200).json(product);
     } catch (e) {
