@@ -26,5 +26,9 @@ router.use('/unit', require("./router/unit"));
 //Realisator
 router.use('/location', require("./router/location"));
 
+// Client
+
+router.use('/order', require("./router/order"));
+
 
 module.exports = router

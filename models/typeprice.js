@@ -4,8 +4,21 @@ const typeprice = new Schema({
     userId: String,
     title: String,
     type: Number,
-    realisators: Array,
-    clients: Array,
+    realisators: [
+        {
+                type: Schema.Types.ObjectId,
+                ref: 'Realisator'
+
+        }
+    ],
+    clients: [
+        {
+            client: {
+                type: Schema.Types.ObjectId,
+                ref: 'Client'
+            }
+        }
+    ],
     createdTime: Date,
     updateTime: Date,
     status: {

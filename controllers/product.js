@@ -185,10 +185,30 @@ const findRealis = async (req, res) => {
         if (user.role == "realisator") {
             let realis = await Realisator.findOne({user: userFunction.id}).lean();
             console.log("realisator", realis)
-            let typeprices = await Typeprice.find({type:1,  'realisators': { $elemMatch: {'realisator': realis._id}  }}).lean();
-            console.log("typeprices", typeprices)
+            // let typeprices = await Typeprice.find({type:1}).elemMatch("realisators", { realisator: realis._id }).lean();
+            // console.log("typeprices", typeprices)
+            let typeprices = await Typeprice.aggregate(
+                [
+
+                    {
+                        $lookup: {
+                            from: "realisators",
+                            localField: "realisators",
+                            foreignField: "_id",
+                            as: "realisators",
+                        },
+                    },
+                    {
+                        $match:{
+                            "realisators._id":realis._id
+                        }
+                    },
+
+                ]
+            )
+            console.log("user", typeprices)
+
         }
-        // console.log("user", user)
         // let typeprices = await Typeprice.find({}).lean();
         // res.status(200).json(product);
     } catch (e) {
