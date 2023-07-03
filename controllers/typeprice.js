@@ -24,6 +24,7 @@ const all = async (req, res) => {
     }
     if (type) fil = {...fil, type};
     typeprices = await Typeprice.find({...fil, userId:userFunction.id })
+        .populate(['realisators', 'clients'])
         .sort({_id:-1})
         .limit(quantity)
         .skip(next).lean();
@@ -111,7 +112,7 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let typeprice = await Typeprice.findOne({_id}).lean();
+        let typeprice = await Typeprice.findOne({_id}).populate(['realisators', 'clients']).lean();
         res.status(200).json(typeprice);
     } catch (e) {
         console.log(e);

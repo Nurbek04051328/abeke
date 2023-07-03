@@ -87,7 +87,7 @@ const create = async (req, res) => {
                 return item
             })
         }
-        console.log("createtypeproducts", newTypeproducts)
+
         return res.status(201).json(newTypeproducts);
     } catch (e) {
         console.log(e)

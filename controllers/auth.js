@@ -31,6 +31,18 @@ const checkLogin = async(req,res) => {
     }
 }
 
+const mobCheckLogin = async(req,res) => {
+    let {login} = req.body
+    console.log("body",req.body)
+    const user = await User.findOne({login})
+    if (user) {
+        console.log("user", user)
+        res.status(401).send({message: "Пользователь с таким логином есть!"})
+    } else {
+        console.log("else")
+        res.status(200).send({message: "ок"})
+    }
+}
 
 // const haveLogin = async (req,res) => {
 //     let { login } = req.body
@@ -100,4 +112,4 @@ const getUser = async (req, res) => {
     })
 }
 
-module.exports = { addadmin, login, checkUser, checkLogin, getUser }
+module.exports = { addadmin, login, checkUser, checkLogin, getUser, mobCheckLogin }

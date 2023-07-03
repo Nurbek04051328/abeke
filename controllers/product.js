@@ -184,29 +184,72 @@ const findRealis = async (req, res) => {
         let user = await User.findOne({_id: userFunction.id}).lean();
         if (user.role == "realisator") {
             let realis = await Realisator.findOne({user: userFunction.id}).lean();
-            console.log("realisator", realis)
-            // let typeprices = await Typeprice.find({type:1}).elemMatch("realisators", { realisator: realis._id }).lean();
-            // console.log("typeprices", typeprices)
-            let typeprices = await Typeprice.aggregate(
-                [
-
-                    {
-                        $lookup: {
-                            from: "realisators",
-                            localField: "realisators",
-                            foreignField: "_id",
-                            as: "realisators",
-                        },
+            let typeprices = await Typeprice.aggregate([
+                {
+                    $lookup: {
+                        from: "realisators",
+                        localField: "realisators",
+                        foreignField: "_id",
+                        as: "realisators",
                     },
-                    {
-                        $match:{
-                            "realisators._id":realis._id
-                        }
-                    },
+                },
+                {
+                    $match:{
+                        "realisators._id":realis._id
+                    }
+                },
 
-                ]
-            )
-            console.log("user", typeprices)
+            ])
+            let result = await Promise.all(typeprices.map(async typeprice => {
+                let obj = {}
+                obj.title = typeprice.title
+                obj.products = await Typeproduct.find({typeprice: typeprice._id}).populate(['product', 'category', {
+                    path: 'product',
+                    populate: {
+                        path: 'unit',
+                        model: 'Unit'
+                    }
+                }]).lean();
+                return typeprice.obj = obj
+
+            }))
+            console.log("res", result)
+            res.status(200).send(result)
+
+        }
+        if (user.role == "client") {
+            let client = await Client.findOne({user: userFunction.id}).lean();
+            let typeprices = await Typeprice.aggregate([
+                {
+                    $lookup: {
+                        from: "clients",
+                        localField: "clients",
+                        foreignField: "_id",
+                        as: "clients",
+                    },
+                },
+                {
+                    $match:{
+                        "clients._id":client._id
+                    }
+                },
+
+            ])
+            let result = await Promise.all(typeprices.map(async typeprice => {
+                let obj = {}
+                obj.title = typeprice.title
+                obj.products = await Typeproduct.find({typeprice: typeprice._id}).populate(['product', 'category', {
+                    path: 'product',
+                    populate: {
+                        path: 'unit',
+                        model: 'Unit'
+                    }
+                }]).lean();
+                return typeprice.obj = obj
+
+            }))
+            console.log("res", result)
+            res.status(200).send(result)
 
         }
         // let typeprices = await Typeprice.find({}).lean();
@@ -222,3 +265,14 @@ const findRealis = async (req, res) => {
 
 
 module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg, findRealis }
+
+
+
+
+
+
+
+
+
+// let typeprices = await Typeprice.find({type:1}).elemMatch("realisators", { realisator: realis._id }).lean();
+// console.log("typeprices", typeprices)

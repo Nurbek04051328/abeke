@@ -7,16 +7,16 @@ const typeprice = new Schema({
     realisators: [
         {
                 type: Schema.Types.ObjectId,
-                ref: 'Realisator'
+                ref: 'Realisator',
+                default:null
 
         }
     ],
     clients: [
         {
-            client: {
-                type: Schema.Types.ObjectId,
-                ref: 'Client'
-            }
+            type: Schema.Types.ObjectId,
+            ref: 'Client',
+            default:null
         }
     ],
     createdTime: Date,
