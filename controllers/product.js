@@ -210,10 +210,13 @@ const findRealis = async (req, res) => {
                         model: 'Unit'
                     }
                 }]).lean();
+                let son = 0
+                son = await Typeproduct.find({typeprice: typeprice._id}).count()
+                obj.count =+ son
+
                 return typeprice.obj = obj
 
             }))
-            console.log("res", result)
             res.status(200).send(result)
 
         }
@@ -234,7 +237,8 @@ const findRealis = async (req, res) => {
                     }
                 },
 
-            ])
+            ]);
+
             let result = await Promise.all(typeprices.map(async typeprice => {
                 let obj = {}
                 obj.title = typeprice.title
@@ -254,6 +258,60 @@ const findRealis = async (req, res) => {
         }
         // let typeprices = await Typeprice.find({}).lean();
         // res.status(200).json(product);
+    } catch (e) {
+        console.log(e);
+        res.send({message: "Ошибка сервера"});
+    }
+}
+
+
+const forTypeprice = async (req, res) => {
+    try {
+        let userFunction = decoded(req,res);
+        let category = req.query.category || null;
+        let fil = {};
+        let result = []
+        if (category) fil = {...fil, category};
+        let user = await User.findOne({_id: userFunction.id}).lean();
+        if (user.role == "realisator") {
+            let realis = await Realisator.findOne({user: userFunction.id}).lean();
+            let typeprices = await Typeprice.aggregate([
+                {
+                    $lookup: {
+                        from: "realisators",
+                        localField: "realisators",
+                        foreignField: "_id",
+                        as: "realisators",
+                    },
+                },
+                {
+                    $match:{
+                        "realisators._id":realis._id
+                    }
+                },
+
+            ])
+
+            let result = await Promise.all(typeprices.map(async typeprice => {
+                let obj = {}
+                obj.title = typeprice.title
+                obj.products = await Typeproduct.find({...fil, typeprice: typeprice._id}).populate(['product', 'category', {
+                    path: 'product',
+                    populate: {
+                        path: 'unit',
+                        model: 'Unit'
+                    }
+                }]).lean();
+                let son = 0
+                son = await Typeproduct.find({typeprice: typeprice._id}).count()
+                obj.count =+ son
+
+                return typeprice.obj = obj
+
+            }))
+            res.status(200).send(result)
+
+        }
     } catch (e) {
         console.log(e);
         res.send({message: "Ошибка сервера"});

@@ -112,7 +112,7 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let typeprice = await Typeprice.findOne({_id}).populate(['realisators', 'clients']).lean();
+        let typeprice = await Typeprice.findOne({_id}).lean();
         res.status(200).json(typeprice);
     } catch (e) {
         console.log(e);
