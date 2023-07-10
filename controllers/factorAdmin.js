@@ -55,12 +55,16 @@ const changeStatus = async (req, res) => {
             const _id = req.params.id
             let status = req.query.status;
             let factoryAdmin = await FactorAdmin.findOne({_id}).lean()
+            let user = await User.findOne({_id: factoryAdmin.user}).lean()
             if(req.query.status) {
                 factoryAdmin.status = parseInt(status)
+                user.status = parseInt(status)
             } else {
                 factoryAdmin.status = factoryAdmin.status == 0 ? 1 : 0
+                user.status = user.status == 0 ? 1 : 0
             }
             let upstatus = await FactorAdmin.findByIdAndUpdate(_id,factoryAdmin)
+            let us = await User.findByIdAndUpdate({_id: user._id}, user,  {returnDocument: 'after'});
             let saveFactoryAdmin = await FactorAdmin.findOne({_id:_id}).populate('user').lean()
             saveFactoryAdmin.createdAt = saveFactoryAdmin.createdAt.toLocaleString("en-GB")
             res.status(200).send(saveFactoryAdmin)

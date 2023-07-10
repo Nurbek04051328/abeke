@@ -20,43 +20,26 @@ const addadmin = async (req, res) => {
 
 const checkLogin = async(req,res) => {
     let {login} = req.body
-    console.log("body",req.body)
     const user = await User.findOne({login})
     if (user) {
-        console.log("user", user)
         res.status(204).send({message: "Пользователь с таким логином есть!"})
     } else {
-        console.log("else")
         res.status(200).send({message: "ок"})
     }
 }
 
 const mobCheckLogin = async(req,res) => {
     let {login} = req.body
-    console.log("body",req.body)
     const user = await User.findOne({login})
     if (user) {
-        console.log("user", user)
         res.status(401).send({message: "Пользователь с таким логином есть!"})
     } else {
-        console.log("else")
         res.status(200).send({message: "ок"})
     }
 }
 
-// const haveLogin = async (req,res) => {
-//     let { login } = req.body
-//     login = "+998 " + login
-//     let have = await User.findOne({login})
-//     if (have) {
-//         return res.status(200).send({message: "Пользователь с таким логином есть!"})
-//     }
-//     res.status(200).send({message:"ок"})
-// }
-
 const login = async (req, res) => {
     let {login, password } = req.body
-    console.log("login", req.body)
     const user = await User.findOne({login})
     if (!user) {
         return res.status(404).json({message: "Пользователь не найдено!"})
@@ -65,7 +48,10 @@ const login = async (req, res) => {
     if (!isPassValid) {
         return res.status(400).json({message: "Пароль не правильно!"})
     }
-    
+    console.log("user",user)
+    if (user.status !== 1) {
+        return res.status(404).json({message: "У вас нет доступа к этому сайту"})
+    }
     const token = jwt.sign({id: user.id}, process.env.SecretKey, {expiresIn: "1d"})
     let findData = {}
     if (user.role == 'realisator') {
@@ -111,5 +97,20 @@ const getUser = async (req, res) => {
         }
     })
 }
+
+// const gettUsers = async  (req, res) => {
+//     let users = await User.find().lean()
+//     users.forEach(async user => {
+//         user.status = 1
+//         await User.findOneAndUpdate({_id:user._id},user, {returnDocument: 'after'});
+//     })
+//     res.status(200).send("Muvaffaqiyatli");
+// }
+//
+// const getHammasi = async  (req, res) => {
+//     let users = await User.find().lean()
+//
+//     res.status(200).send(users);
+// }
 
 module.exports = { addadmin, login, checkUser, checkLogin, getUser, mobCheckLogin }

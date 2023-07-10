@@ -269,9 +269,7 @@ const forTypeprice = async (req, res) => {
     try {
         let userFunction = decoded(req,res);
         let category = req.query.category || null;
-        let fil = {};
-        let result = []
-        if (category) fil = {...fil, category};
+        console.log("cat,", category )
         let user = await User.findOne({_id: userFunction.id}).lean();
         if (user.role == "realisator") {
             let realis = await Realisator.findOne({user: userFunction.id}).lean();
@@ -295,21 +293,19 @@ const forTypeprice = async (req, res) => {
             let result = await Promise.all(typeprices.map(async typeprice => {
                 let obj = {}
                 obj.title = typeprice.title
-                obj.products = await Typeproduct.find({...fil, typeprice: typeprice._id}).populate(['product', 'category', {
+                obj.products = await Typeproduct.find({category: category, typeprice: typeprice._id}).populate(['product', 'category', {
                     path: 'product',
                     populate: {
                         path: 'unit',
                         model: 'Unit'
                     }
                 }]).lean();
-                let son = 0
-                son = await Typeproduct.find({typeprice: typeprice._id}).count()
-                obj.count =+ son
 
                 return typeprice.obj = obj
 
             }))
-            res.status(200).send(result)
+            console.log("res", typeprices)
+            res.status(200).send(typeprices)
 
         }
     } catch (e) {
@@ -322,7 +318,7 @@ const forTypeprice = async (req, res) => {
 
 
 
-module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg, findRealis }
+module.exports = { all, count, changeStatus, allActive, create, update, findOne, del, createPhoto, deleteImg, findRealis, forTypeprice }
 
 
 

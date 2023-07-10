@@ -16,6 +16,10 @@ const User = new Schema({
     loginAt: [Date],
     createdAt: Date,
     updateAt:Date,
+    status: {
+        type: Number,
+        default: 1
+    }
 })
 
 module.exports = model("User", User)

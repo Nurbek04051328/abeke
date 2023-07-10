@@ -8,7 +8,7 @@ const kirilLotin = require("../service/kirilLotin");
 const all = async (req, res) => {
     try {
         let userFunction = decoded(req,res)
-        let quantity = req.query.quantity || 20;
+        let quantity = req.query.quantity || 5;
         let next = req.query.next || 1;
         next = (next-1)*quantity;
         let name = req.query.name || null;
