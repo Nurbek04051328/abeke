@@ -14,7 +14,9 @@ const all = async (req, res) => {
         let fil = {};
         if (name) fil = {...fil, 'name': { $regex: new RegExp( name.toLowerCase(), 'i')}};
         adminFactors = await FactorAdmin.find({...fil})
-            .populate('user')
+            .populate([
+                {path:"user",model:User, select:'login role'}
+            ])
             .sort({_id:-1})
             .limit(quantity)
             .skip(next).lean();
@@ -31,17 +33,7 @@ const all = async (req, res) => {
 
 const count = async (req, res) => {
     try {
-        // let quantity = req.query.quantity || 30;
-        // let next = req.query.next || 1;
-        // next = (next-1)*quantity;
-        let name = req.query.name || null;
-        let adminFactors = [];
-        let fil = {};
-        if (name) fil = {...fil, 'name': { $regex: new RegExp( name.toLowerCase(), 'i')}};
-        adminFactors = await FactorAdmin.find({...fil})
-            .populate('user')
-            .sort({_id:-1})
-            .count();
+        let adminFactors = await FactorAdmin.find().count();
         res.status(200).json(adminFactors);
     } catch (e) {
         console.log(e)
@@ -64,8 +56,10 @@ const changeStatus = async (req, res) => {
                 user.status = user.status == 0 ? 1 : 0
             }
             let upstatus = await FactorAdmin.findByIdAndUpdate(_id,factoryAdmin)
-            let us = await User.findByIdAndUpdate({_id: user._id}, user,  {returnDocument: 'after'});
-            let saveFactoryAdmin = await FactorAdmin.findOne({_id:_id}).populate('user').lean()
+            await User.findByIdAndUpdate({_id: user._id}, user,  {returnDocument: 'after'});
+            let saveFactoryAdmin = await FactorAdmin.findOne({_id:_id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean()
             saveFactoryAdmin.createdAt = saveFactoryAdmin.createdAt.toLocaleString("en-GB")
             res.status(200).send(saveFactoryAdmin)
         } else {
@@ -82,7 +76,6 @@ const create = async (req, res) => {
         let { login, password, name, phone, email, status } = req.body;
         status = status || 1
         const haveLogin = await User.findOne({login});
-        console.log(haveLogin)
         if (haveLogin) {
             return res.status(400).json({message: `Такой логин есть`});
         }
@@ -93,7 +86,9 @@ const create = async (req, res) => {
         const factorAdmin = await new FactorAdmin({ user:newUser._id, name, phone, email, status, createdAt:Date.now() });
         await factorAdmin.validate();
         await factorAdmin.save();
-        let newFactoryAdmin = await FactorAdmin.findOne({_id:factorAdmin._id}).populate('user').lean()
+        let newFactoryAdmin = await FactorAdmin.findOne({_id:factorAdmin._id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean()
         newFactoryAdmin.createdAt = newFactoryAdmin.createdAt.toLocaleString("en-GB")
         return res.status(201).json(newFactoryAdmin);
     } catch (error) {
@@ -123,7 +118,9 @@ const update = async (req, res) => {
                 user.password = hashPass;
             }
             await User.findByIdAndUpdate(user._id,user);
-            let saveFactorAdmin = await FactorAdmin.findOne({_id:factorAdmin._id}).populate('user').lean();
+            let saveFactorAdmin = await FactorAdmin.findOne({_id:factorAdmin._id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean();
             saveFactorAdmin.createdAt = saveFactorAdmin.createdAt.toLocaleString("en-GB")
             res.status(200).json(saveFactorAdmin);
         } else {
@@ -138,7 +135,9 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let factorAdmin = await FactorAdmin.findOne({_id}).populate('user').lean();
+        let factorAdmin = await FactorAdmin.findOne({_id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean();
         res.status(200).json(factorAdmin);
     } catch (e) {
         console.log(e);

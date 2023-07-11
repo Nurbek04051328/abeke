@@ -28,7 +28,9 @@ const all = async (req, res) => {
         }
         if (phone) fil = {...fil, phone};
         factors = await Factory.find({...fil, userId:userFunction.id })
-            .populate('user')
+            .populate([
+                {path:"user",model:User, select:'login role'}
+            ])
             .sort({_id:-1})
             .limit(quantity)
             .skip(next).lean();
@@ -48,17 +50,7 @@ const all = async (req, res) => {
 const count = async (req, res) => {
     try {
         let userFunction = decoded(req,res)
-        // let quantity = req.query.quantity || 30;
-        // let next = req.query.next || 1;
-        // next = (next-1)*quantity;
-        let name = req.query.name || null;
-        let factors = [];
-        let fil = {};
-        if (name) fil = {...fil, 'name': { $regex: new RegExp( name.toLowerCase(), 'i')}};
-        factors = await Factory.find({...fil, userId:userFunction.id})
-            .populate('user')
-            .sort({_id:-1})
-            .count();
+        let factors = await Factory.find({userId:userFunction.id}).count();
         res.status(200).json(factors);
     } catch (e) {
         console.log(e)
@@ -72,14 +64,20 @@ const changeStatus = async (req, res) => {
         if (req.params.id) {
             const _id = req.params.id
             let status = req.query.status;
-            let factory = await Factory.findOne({_id}).lean()
+            let factory = await Factory.findOne({_id}).lean();
+            let user = await User.findOne({_id: factory.user}).lean()
             if(req.query.status) {
                 factory.status = parseInt(status)
+                user.status = parseInt(status)
             } else {
                 factory.status = factory.status == 0 ? 1 : 0
+                user.status = user.status == 0 ? 1 : 0
             }
             let upstatus = await Factory.findByIdAndUpdate(_id,factory)
-            let saveFactory = await Factory.findOne({_id:_id}).populate('user').lean()
+            await User.findByIdAndUpdate({_id: user._id}, user,  {returnDocument: 'after'});
+            let saveFactory = await Factory.findOne({_id:_id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean()
             saveFactory.createdAt = saveFactory.createdAt.toLocaleString("en-GB")
             res.status(200).send(saveFactory)
         } else {
@@ -106,7 +104,9 @@ const create = async (req, res) => {
 
         const factory = await new Factory({ user:newUser._id, userId:userFunction.id, name, phone, address, createdAt:Date.now() });
         await factory.save();
-        let newFactor = await Factory.findOne({_id:factory._id}).populate('user').lean()
+        let newFactor = await Factory.findOne({_id:factory._id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean()
         newFactor.createdAt = newFactor.createdAt.toLocaleString("en-GB")
         return res.status(201).json(newFactor);
     } catch (e) {
@@ -129,7 +129,9 @@ const update = async (req, res) => {
                 user.password = hashPass;
             }
             await User.findByIdAndUpdate(user._id,user);
-            let saveFactory = await Factory.findOne({_id:factory._id}).populate('user').lean();
+            let saveFactory = await Factory.findOne({_id:factory._id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean();
             saveFactory.createdAt = saveFactory.createdAt.toLocaleString("en-GB")
             res.status(200).json(saveFactory);
         } else {
@@ -144,7 +146,9 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let factory = await Factory.findOne({_id}).populate('user').lean();
+        let factory = await Factory.findOne({_id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean();
         res.status(200).json(factory);
     } catch (e) {
         console.log(e);

@@ -48,7 +48,6 @@ const login = async (req, res) => {
     if (!isPassValid) {
         return res.status(400).json({message: "Пароль не правильно!"})
     }
-    console.log("user",user)
     if (user.status !== 1) {
         return res.status(404).json({message: "У вас нет доступа к этому сайту"})
     }

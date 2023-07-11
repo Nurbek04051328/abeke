@@ -27,7 +27,9 @@ const all = async (req, res) => {
         }
         if (phone) fil = {...fil, phone};
         realisators = await Realisator.find({...fil, userId:userFunction.id })
-            .populate('user')
+            .populate([
+                {path:"user",model:User, select:'login role'}
+            ])
             .sort({_id:-1})
             .limit(quantity)
             .skip(next).lean();
@@ -47,9 +49,7 @@ const all = async (req, res) => {
 const count = async (req, res) => {
     try {
         let userFunction = decoded(req,res)
-        realisators = await Realisator.find({userId:userFunction.id})
-            .populate('user')
-            .count();
+        realisators = await Realisator.find({userId:userFunction.id}).count();
         res.status(200).json(realisators);
     } catch (e) {
         console.log(e)
@@ -72,14 +72,20 @@ const changeStatus = async (req, res) => {
         if (req.params.id) {
             const _id = req.params.id
             let status = req.query.status;
-            let realisator = await Realisator.findOne({_id}).lean()
+            let realisator = await Realisator.findOne({_id}).lean();
+            let user = await User.findOne({_id: realisator.user}).lean()
             if(req.query.status) {
-                realisator.status = parseInt(status)
+                realisator.status = parseInt(status);
+                user.status = parseInt(status)
             } else {
-                realisator.status = realisator.status == 0 ? 1 : 0
+                realisator.status = realisator.status == 0 ? 1 : 0;
+                user.status = user.status == 0 ? 1 : 0
             }
             let upstatus = await Realisator.findByIdAndUpdate(_id,realisator)
-            let saveRealisator = await Realisator.findOne({_id:_id}).populate('user').lean()
+            await User.findByIdAndUpdate({_id: user._id}, user,  {returnDocument: 'after'});
+            let saveRealisator = await Realisator.findOne({_id:_id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean()
             saveRealisator.createdAt = saveRealisator.createdAt.toLocaleString("en-GB")
             res.status(200).send(saveRealisator)
         } else {
@@ -105,7 +111,9 @@ const create = async (req, res) => {
 
         const realisator = await new Realisator({ user:newUser._id, userId:userFunction.id, name, phone, createdAt:Date.now() });
         await realisator.save();
-        let newRealisator = await Realisator.findOne({_id:realisator._id}).populate('user').lean()
+        let newRealisator = await Realisator.findOne({_id:realisator._id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean()
         newRealisator.createdAt = newRealisator.createdAt.toLocaleString("en-GB")
         return res.status(201).json(newRealisator);
     } catch (e) {
@@ -128,7 +136,9 @@ const update = async (req, res) => {
                 user.password = hashPass;
             }
             await User.findByIdAndUpdate(user._id,user);
-            let saveRealisator = await Realisator.findOne({_id:realisator._id}).populate('user').lean();
+            let saveRealisator = await Realisator.findOne({_id:realisator._id}).populate([
+                {path:"user",model:User, select:'login role'}
+            ]).lean();
             saveRealisator.createdAt = saveRealisator.createdAt.toLocaleString("en-GB")
             res.status(200).json(saveRealisator);
         } else {
@@ -143,7 +153,9 @@ const update = async (req, res) => {
 const findOne = async (req, res) => {
     try {
         const _id = req.params.id;
-        let realisator = await Realisator.findOne({_id}).populate('user').lean();
+        let realisator = await Realisator.findOne({_id}).populate([
+            {path:"user",model:User, select:'login role'}
+        ]).lean();
         console.log("real",realisator)
         res.status(200).json(realisator);
     } catch (e) {
