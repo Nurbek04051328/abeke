@@ -15,6 +15,8 @@ const realisator = new Schema({
         type: String,
         required: true
     },
+    debt: Number,
+    avatar: String,
     createdAt: Date,
     updateAt: Date,
     status: {
